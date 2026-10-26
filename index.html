@@ -115,7 +115,8 @@ textarea { min-height: 84px; resize: vertical }
 .tac { border-radius: 6px; padding: 3px 8px; font-size: 13px; border: 1px solid transparent }
 .tac.have { background: var(--ok-bg); color: var(--ok) }
 .tac.miss { background: var(--bad-bg); color: var(--bad) }
-.hanc { font-size: 11px; font-weight: 700; color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 0 6px }
+.hanc { font-size: 11px; font-weight: 700; color: var(--accent); border: 1px solid currentColor; border-radius: 999px; padding: 0 6px; white-space: nowrap }
+.hanc.bad { color: var(--bad) } .hanc.na { color: var(--muted); font-weight: 400 }
 .tac.bk { background: var(--gold-soft); color: var(--ink) }
 .setup2 { margin-top: 3px; font-size: 12px; color: var(--muted) }
 .setup2 summary { cursor: pointer; color: var(--accent); font-size: 12px }
@@ -1276,7 +1277,12 @@ function renderArmy(e, i) {
   tt.appendChild(el('h3', null, d.name));
   const meta = el('div', 'meta');
   meta.appendChild(tierPill(d));
-  if (e.han > 0) { const hr = hanRatio(d); const hb = el('span', 'hanc', `한실궁 상대 전손비 ${hr.toFixed(2)}`); hb.title = `S29 전보 기준 · 점수 1~2점 차이면 이 덱을 먼저 추천 (순위 가산 +${e.han.toFixed(1)})`; meta.appendChild(hb); }
+  {   // 한실궁 상대 전손비: 1~3군 모두 표시 (1 이상 유리 · 1 미만 불리 · 자료 없으면 회색)
+    const hr = hanRatio(d), self = /한궁|한실궁/.test(d.name);
+    const hb = el('span', 'hanc' + (hr == null ? ' na' : hr < 1 ? ' bad' : ''), self && hr == null ? '한실궁 덱' : hr == null ? '한실궁 전손비 —' : `한실궁 전손비 ${hr.toFixed(2)}`);
+    hb.title = hr == null ? '한실궁 상대 전손비: S29 전보에 이 조합의 한궁(SP노식) 상대 기록이 없습니다.' : `한실궁(한궁·SP노식) 상대 전손비 · S29 전보 기준 · 1보다 크면 한실궁에 유리` + (e.han > 0 ? ` · 점수 1~2점 차이면 이 덱을 먼저 추천 (순위 가산 +${e.han.toFixed(1)})` : '');
+    meta.appendChild(hb);
+  }
   meta.appendChild(el('span', null, d.fac === '평가' ? '2/28 덱평가' : d.fac === '콜라보' ? '콜라보덱' : d.fac + ' 진영'));
   if (d.s2) meta.appendChild(el('span', null, `덱평가 ${d.s1}→${d.s2}`));
   if (d.tierNote) meta.appendChild(el('span', null, `(${d.tierNote})`));
